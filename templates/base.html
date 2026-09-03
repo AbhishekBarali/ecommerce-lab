@@ -1,0 +1,47 @@
+{% set student = {"name": "Abhishek Barali", "roll": "023bscit003", "section": "A", "batch": "2023"} %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}E-Commerce Laboratory{% endblock %}</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+<!-- Lab 6: Google Analytics 4 (gtag.js) tracking snippet.
+     G-XXXXXXXXXX is the Measurement ID from the GA4 property. -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+</head>
+<body>
+<header class="topbar">
+  <div>
+    <span class="brand">Mini E-Commerce Store</span>
+    <span class="sub">E-Commerce Laboratory &middot; Lab Programs 1&ndash;6</span>
+  </div>
+  <div class="student">
+    {{ student.name }} &middot; {{ student.roll }} &middot; Section {{ student.section }} &middot; Batch {{ student.batch }}
+  </div>
+</header>
+
+<nav class="tabs">
+  <a href="/" class="{{ 'on' if active == 'home' }}">Home</a>
+  <a href="/lab1" class="{{ 'on' if active == 'lab1' }}">1. Categories</a>
+  <a href="/lab2" class="{{ 'on' if active == 'lab2' }}">2. Cart</a>
+  <a href="/lab3" class="{{ 'on' if active == 'lab3' }}">3. Checkout</a>
+  <a href="/lab4" class="{{ 'on' if active == 'lab4' }}">4. Wish List</a>
+  <a href="/lab5" class="{{ 'on' if active == 'lab5' }}">5. Payment</a>
+  <a href="/lab6" class="{{ 'on' if active == 'lab6' }}">6. Analytics</a>
+</nav>
+
+<main>
+  {% block body %}{% endblock %}
+</main>
+
+<footer>Programs written in Python (Flask). Data stored in lists and dictionaries, no database.</footer>
+</body>
+</html>

@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Lab 3 - Checkout{% endblock %}
+{% block body %}
+<h1>Lab 3 &mdash; Add to Cart and Checkout</h1>
+<p class="lead">Items are added to the cart, the checkout form turns the cart into an order, and every placed order is listed below.</p>
+
+{% if msg %}<div class="flash">{{ msg }}</div>{% endif %}
+
+<h2>Products</h2>
+<div class="grid">
+  {% for p in products %}
+    <div class="product">
+      <div class="name">{{ p.name }}</div>
+      <div class="cat">{{ p.category }}</div>
+      <div class="price">NPR {{ p.price }}</div>
+      <form method="post" action="/lab3/add/{{ p.id }}">
+        <button type="submit">Add to Cart</button>
+      </form>
+    </div>
+  {% endfor %}
+</div>
+
+<div class="grid two" style="margin-top:22px">
+  <div class="card">
+    <h2 style="margin-top:0">Cart</h2>
+    {% if cart %}
+      <table>
+        <tr><th>Item</th><th class="num">Qty</th><th class="num">Subtotal</th></tr>
+        {% for line in cart %}
+          <tr><td>{{ line.name }}</td><td class="num">{{ line.qty }}</td><td class="num">{{ line.price * line.qty }}</td></tr>
+        {% endfor %}
+        <tr class="total"><td colspan="2">Total</td><td class="num">NPR {{ total }}</td></tr>
+      </table>
+    {% else %}
+      <p class="empty">Cart is empty.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Checkout</h2>
+    <form method="post" action="/lab3/checkout">
+      <div class="field">
+        <label>Customer name</label>
+        <input name="customer" value="Abhishek Barali" required style="width:100%">
+      </div>
+      <div class="field">
+        <label>Delivery address</label>
+        <input name="address" value="Kathmandu, Nepal" required style="width:100%">
+      </div>
+      <button type="submit">Place Order</button>
+    </form>
+  </div>
+</div>
+
+<h2>Ordered list of items</h2>
+{% if orders %}
+  {% for order in orders %}
+    <div class="card">
+      <div style="display:flex;justify-content:space-between">
+        <strong>Order #{{ order.order_id }}</strong>
+        <span class="pill">NPR {{ order.total }}</span>
+      </div>
+      <p class="empty">{{ order.customer }} &middot; {{ order.address }}</p>
+      <table>
+        <tr><th>Item</th><th class="num">Price</th><th class="num">Qty</th><th class="num">Subtotal</th></tr>
+        {% for line in order['items'] %}
+          <tr>
+            <td>{{ line.name }}</td>
+            <td class="num">{{ line.price }}</td>
+            <td class="num">{{ line.qty }}</td>
+            <td class="num">{{ line.price * line.qty }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  {% endfor %}
+{% else %}
+  <div class="card"><p class="empty">No order has been placed yet.</p></div>
+{% endif %}
+{% endblock %}

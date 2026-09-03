@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Lab 2 - Add to Cart{% endblock %}
+{% block body %}
+<h1>Lab 2 &mdash; Product List and Add to Cart</h1>
+<p class="lead">Every product can be pushed into the cart list, and the cart is displayed with quantity and total.</p>
+
+{% if msg %}<div class="flash">{{ msg }}</div>{% endif %}
+
+<h2>Products</h2>
+<div class="grid">
+  {% for p in products %}
+    <div class="product">
+      <div class="name">{{ p.name }}</div>
+      <div class="cat">{{ p.category }}</div>
+      <div class="price">NPR {{ p.price }}</div>
+      <form method="post" action="/lab2/add/{{ p.id }}">
+        <button type="submit">Add to Cart</button>
+      </form>
+    </div>
+  {% endfor %}
+</div>
+
+<h2>Cart items</h2>
+<div class="card">
+  {% if cart %}
+    <table>
+      <tr><th>Item</th><th class="num">Price</th><th class="num">Qty</th><th class="num">Subtotal</th><th></th></tr>
+      {% for line in cart %}
+        <tr>
+          <td>{{ line.name }}</td>
+          <td class="num">{{ line.price }}</td>
+          <td class="num">{{ line.qty }}</td>
+          <td class="num">{{ line.price * line.qty }}</td>
+          <td class="num">
+            <form method="post" action="/lab2/remove/{{ line.id }}">
+              <button class="ghost" type="submit">Remove</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+      <tr class="total"><td colspan="3">Total</td><td class="num">NPR {{ total }}</td><td></td></tr>
+    </table>
+  {% else %}
+    <p class="empty">The cart is empty. Add a product above.</p>
+  {% endif %}
+</div>
+{% endblock %}

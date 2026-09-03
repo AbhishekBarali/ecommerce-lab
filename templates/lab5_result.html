@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Payment Result{% endblock %}
+{% block body %}
+<h1>Lab 5 &mdash; Payment Result</h1>
+
+{% if record %}
+  {% if record.status == 'COMPLETE' %}
+    <div class="flash">Payment successful. The gateway returned status {{ record.status }}.</div>
+  {% else %}
+    <div class="note" style="margin-bottom:16px">Payment failed. The credentials did not match the sandbox test account.</div>
+  {% endif %}
+
+  <div class="card">
+    <h2 style="margin-top:0">Response from the gateway</h2>
+    <table>
+      <tr><td>Transaction reference</td><td><code>{{ record.ref }}</code></td></tr>
+      <tr><td>Payment method</td><td>{{ record.method }}</td></tr>
+      <tr><td>Amount paid</td><td>NPR {{ record.amount }}</td></tr>
+      <tr><td>Status</td><td>{{ record.status }}</td></tr>
+      <tr><td>Date and time</td><td>{{ record.time }}</td></tr>
+    </table>
+    <a class="btn ghost" href="/lab5" style="margin-top:14px">Back to payment page</a>
+  </div>
+{% else %}
+  <div class="card"><p class="empty">No payment record found.</p></div>
+{% endif %}
+
+<h2>Payment log</h2>
+<div class="card">
+  <table>
+    <tr><th>Reference</th><th>Method</th><th class="num">Amount</th><th>Status</th><th>Time</th></tr>
+    {% for p in payments %}
+      <tr><td><code>{{ p.ref }}</code></td><td>{{ p.method }}</td><td class="num">NPR {{ p.amount }}</td><td>{{ p.status }}</td><td>{{ p.time }}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}

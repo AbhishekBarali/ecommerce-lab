@@ -1,0 +1,13 @@
+ecommerce-lab/
+    app.py                        entry point, runs all six labs
+    store/data.py                 products, categories, cart, wishlist, orders
+    labs/lab1_categories.py       Lab 1
+    labs/lab2_cart.py             Lab 2
+    labs/lab3_checkout.py         Lab 3
+    labs/lab4_wishlist.py         Lab 4
+    labs/lab5_payment.py          Lab 5
+    labs/lab6_analytics.py        Lab 6
+    templates/                    HTML pages, base.html holds the GA4 snippet
+    static/style.css              styling
+    screenshots/                  output screenshots used in this report
+    docs/                         this report

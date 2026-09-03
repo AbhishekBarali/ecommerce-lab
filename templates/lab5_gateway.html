@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Sandbox Gateway{% endblock %}
+{% block body %}
+<div class="gateway">
+  <div class="head">eSewa &middot; Test Payment Gateway</div>
+  <div class="body">
+    <label>Amount to pay</label>
+    <div class="amount">NPR {{ amount }}</div>
+
+    <form method="post" action="/lab5/verify">
+      <input type="hidden" name="amount" value="{{ amount }}">
+      <div class="field">
+        <label>eSewa ID</label>
+        <input name="esewa_id" value="{{ sandbox.esewa_id }}" style="width:100%">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input name="password" type="password" value="{{ sandbox.password }}" style="width:100%">
+      </div>
+      <div class="field">
+        <label>Token (OTP)</label>
+        <input name="token" value="{{ sandbox.token }}" style="width:100%">
+      </div>
+      <button type="submit" style="width:100%">Confirm Payment</button>
+    </form>
+    <p class="note" style="margin-top:14px">Sandbox screen. Credentials are the published test values, pre-filled for the demonstration.</p>
+  </div>
+</div>
+{% endblock %}

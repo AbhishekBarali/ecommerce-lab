@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Lab 5 - Payment Gateway{% endblock %}
+{% block body %}
+<h1>Lab 5 &mdash; Payment Gateway Integration (Sandbox)</h1>
+<p class="lead">The checkout page hands the amount to a payment gateway in test mode, and the gateway returns a transaction reference and a status.</p>
+
+<div class="grid two">
+  <div class="card">
+    <h2 style="margin-top:0">Order summary</h2>
+    <table>
+      <tr><td>Cart subtotal</td><td class="num">NPR {{ subtotal }}</td></tr>
+      <tr><td>Delivery charge</td><td class="num">NPR {{ delivery }}</td></tr>
+      <tr class="total"><td>Amount payable</td><td class="num">NPR {{ total }}</td></tr>
+    </table>
+    <form method="post" action="/lab5/gateway" style="margin-top:14px">
+      <input type="hidden" name="amount" value="{{ total }}">
+      <input type="hidden" name="product_code" value="{{ sandbox.merchant_code }}">
+      <button type="submit">Pay with eSewa</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Test mode details</h2>
+    <table>
+      <tr><td>Gateway</td><td>eSewa ePay (sandbox)</td></tr>
+      <tr><td>Merchant / product code</td><td><code>{{ sandbox.merchant_code }}</code></td></tr>
+      <tr><td>Test eSewa ID</td><td><code>{{ sandbox.esewa_id }}</code></td></tr>
+      <tr><td>Test password</td><td><code>{{ sandbox.password }}</code></td></tr>
+      <tr><td>Test token (OTP)</td><td><code>{{ sandbox.token }}</code></td></tr>
+    </table>
+    <p class="note" style="margin-top:14px">Test mode only. No live merchant key is used and no real money moves, so the same flow can be demonstrated offline.</p>
+  </div>
+</div>
+
+{% if payments %}
+<h2>Payment log</h2>
+<div class="card">
+  <table>
+    <tr><th>Reference</th><th>Method</th><th class="num">Amount</th><th>Status</th><th>Time</th></tr>
+    {% for p in payments %}
+      <tr><td><code>{{ p.ref }}</code></td><td>{{ p.method }}</td><td class="num">NPR {{ p.amount }}</td><td>{{ p.status }}</td><td>{{ p.time }}</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endif %}
+{% endblock %}
