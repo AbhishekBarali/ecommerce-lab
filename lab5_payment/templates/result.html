@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Payment result</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding-bottom: 40px; font-family: "Tahoma", "Segoe UI", sans-serif; background: #eef1ee; color: #2b332c; }
+  .top { background: #fff; border-bottom: 3px solid #60bb46; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; }
+  .top .brand { font-size: 20px; font-weight: bold; }
+  .top .brand span { color: #60bb46; }
+  .top .me { font-size: 12px; color: #6b756c; text-align: right; line-height: 1.7; }
+  .top .me b { color: #2b332c; font-size: 13px; }
+  main { max-width: 720px; margin: 26px auto 0; padding: 0 22px; }
+  .banner { border-radius: 6px; padding: 16px 20px; margin-bottom: 20px; font-size: 15px; }
+  .banner.ok { background: #e8f5e9; border: 1px solid #b6dfba; color: #1b5e20; }
+  .banner.no { background: #fdecea; border: 1px solid #f3c1bc; color: #8f1d16; }
+  .banner b { display: block; font-size: 17px; margin-bottom: 3px; }
+  .slip { background: #fff; border: 1px solid #dbe1db; border-radius: 6px; padding: 22px 24px; }
+  .slip h2 { margin: 0 0 16px; font-size: 14px; text-transform: uppercase; letter-spacing: 1.5px; color: #6b756c; }
+  .row { display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px dotted #dbe1db; font-size: 14px; }
+  .row span:last-child { font-family: "Consolas", monospace; }
+  .row.big span:last-child { font-size: 18px; font-weight: bold; color: #2e7d32; }
+  .back { display: inline-block; margin-top: 18px; background: #2b332c; color: #fff; text-decoration: none; padding: 10px 18px; border-radius: 4px; font-size: 13px; }
+  h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: #6b756c; margin: 30px 0 10px; }
+  .log { background: #fff; border: 1px solid #dbe1db; border-radius: 6px; padding: 6px 20px 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  td, th { padding: 8px 0; text-align: left; border-bottom: 1px solid #eef1ee; }
+  th { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #8b948c; font-weight: normal; }
+  td.r, th.r { text-align: right; }
+  .ok-t { color: #2e7d32; font-weight: bold; }
+  .no-t { color: #b3261e; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand">Kalash <span>Digital</span></div>
+  <div class="me"><b>{{ customer.name }}</b><br>Customer {{ customer.roll }}</div>
+</div>
+
+<main>
+{% if payment %}
+  {% if payment.status == 'COMPLETE' %}
+    <div class="banner ok"><b>Payment successful</b>The gateway confirmed the payment and returned the reference below.</div>
+  {% else %}
+    <div class="banner no"><b>Payment failed</b>The credentials did not match the sandbox test account, so the gateway declined the payment.</div>
+  {% endif %}
+
+  <div class="slip">
+    <h2>Response from the gateway</h2>
+    <div class="row"><span>Transaction reference</span><span>{{ payment.reference }}</span></div>
+    <div class="row"><span>Invoice</span><span>{{ payment.order }}</span></div>
+    <div class="row"><span>Paid by</span><span>{{ payment.payer }} ({{ payment.roll }})</span></div>
+    <div class="row"><span>Channel</span><span>{{ payment.channel }}</span></div>
+    <div class="row"><span>Status</span><span>{{ payment.status }}</span></div>
+    <div class="row"><span>Date and time</span><span>{{ payment.time }}</span></div>
+    <div class="row big"><span>Amount</span><span>NPR {{ payment.amount }}</span></div>
+    <a class="back" href="/">Back to the invoice</a>
+  </div>
+{% else %}
+  <div class="slip">No payment record was found for that reference.</div>
+{% endif %}
+
+  <h3>Payment log</h3>
+  <div class="log">
+    <table>
+      <tr><th>Reference</th><th>Invoice</th><th class="r">Amount</th><th>Status</th><th>Time</th></tr>
+      {% for p in payments %}
+        <tr>
+          <td>{{ p.reference }}</td><td>{{ p.order }}</td><td class="r">{{ p.amount }}</td>
+          <td class="{{ 'ok-t' if p.status == 'COMPLETE' else 'no-t' }}">{{ p.status }}</td>
+          <td>{{ p.time }}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  </div>
+</main>
+</body>
+</html>

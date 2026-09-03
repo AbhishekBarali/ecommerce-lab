@@ -1,0 +1,18 @@
+{
+  "name": "ecommerce-lab",
+  "version": "1.0.0",
+  "description": "A mini e-commerce store that covers all six programs of the E-Commerce Laboratory assignment. Written in Python with Flask. All data lives in plain lists and dictionaries, so no database is needed.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "docx": "^9.5.1"
+  }
+}

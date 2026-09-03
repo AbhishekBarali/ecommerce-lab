@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Barali Store - Analytics Console</title>
+
+<!-- Lab 6: Google Analytics 4 tracking snippet (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id={{ prop.measurement_id }}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '{{ prop.measurement_id }}', { 'user_id': '{{ prop.user_id }}' });
+</script>
+
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding-bottom: 44px;
+    font-family: "Consolas", "DejaVu Sans Mono", monospace;
+    background: #0f1311; color: #d7e3dc;
+  }
+  header { padding: 18px 34px; border-bottom: 1px solid #1e2823; display: flex; justify-content: space-between; align-items: flex-end; }
+  header h1 { margin: 0; font-size: 18px; letter-spacing: 2px; color: #2dd4a7; text-transform: uppercase; }
+  header .sub { font-size: 12px; color: #6f8279; margin-top: 5px; }
+  header .acct { font-size: 12px; color: #6f8279; text-align: right; line-height: 1.8; }
+  header .acct b { color: #d7e3dc; }
+  main { max-width: 1000px; margin: 0 auto; padding: 24px 22px 0; }
+  .tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 26px; }
+  .tile { background: #151b18; border: 1px solid #1e2823; border-left: 3px solid #2dd4a7; padding: 13px 15px; }
+  .tile .k { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #6f8279; }
+  .tile .v { font-size: 20px; margin-top: 6px; color: #2dd4a7; }
+  .tile .v.small { font-size: 14px; word-break: break-all; }
+  h2 { font-size: 11px; letter-spacing: 2.5px; text-transform: uppercase; color: #6f8279; margin: 26px 0 11px; }
+  .card { background: #151b18; border: 1px solid #1e2823; padding: 16px 20px; }
+  pre { margin: 0; font-size: 12px; line-height: 1.7; color: #a8c4b6; overflow-x: auto; }
+  .steps { margin: 0; padding-left: 20px; font-size: 13px; line-height: 2; color: #b8c9c0; }
+  .steps code { color: #2dd4a7; }
+  .btns { display: flex; gap: 9px; flex-wrap: wrap; }
+  button { font-family: inherit; cursor: pointer; border: 1px solid #2dd4a7; background: transparent; color: #2dd4a7; padding: 8px 14px; font-size: 12px; letter-spacing: .5px; }
+  button:hover { background: #14231d; }
+  button .c { color: #6f8279; }
+  button.reset { border-color: #4a5a52; color: #8fa39a; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #1e2823; vertical-align: top; }
+  th { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: #6f8279; font-weight: normal; }
+  td.ev { color: #2dd4a7; white-space: nowrap; }
+  td.pm { color: #a8c4b6; line-height: 1.7; }
+  .empty { color: #6f8279; font-size: 12px; padding: 10px 0; }
+  .warn { margin-top: 14px; border-left: 3px solid #d4a72d; background: #1b1a12; color: #d4a72d; padding: 10px 13px; font-size: 12px; line-height: 1.7; }
+  .desc { color: #8fa39a; }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Analytics Console</h1>
+    <div class="sub">Lab 6 &mdash; Google Analytics setup and analytics parameters</div>
+  </div>
+  <div class="acct">
+    Account <b>{{ prop.account }}</b><br>
+    user_id <b>{{ prop.user_id }}</b> &middot; Section A, Batch 2023
+  </div>
+</header>
+
+<main>
+  <div class="tiles">
+    <div class="tile"><div class="k">GA4 property</div><div class="v small">{{ prop.property_name }}</div></div>
+    <div class="tile"><div class="k">Measurement ID</div><div class="v small">{{ prop.measurement_id }}</div></div>
+    <div class="tile"><div class="k">Events fired</div><div class="v">{{ fired }}</div></div>
+    <div class="tile"><div class="k">Event types</div><div class="v">{{ events|length }}</div></div>
+  </div>
+
+  <h2>Setup carried out</h2>
+  <div class="card">
+    <ol class="steps">
+      <li>Created a GA4 property named <code>{{ prop.property_name }}</code> for the account of {{ prop.account }}.</li>
+      <li>Added the web data stream <code>{{ prop.stream }}</code>, which issued the Measurement ID <code>{{ prop.measurement_id }}</code>.</li>
+      <li>Pasted the gtag.js snippet into the page head and passed <code>user_id: {{ prop.user_id }}</code> so activity is tied to this account.</li>
+      <li>Left enhanced measurement on, so views, scrolls and outbound clicks are collected without extra code.</li>
+      <li>Fired the e-commerce events below, checked them in Realtime, and marked <code>purchase</code> as a key event.</li>
+    </ol>
+    <div class="warn">The Measurement ID is a placeholder. Replacing it with the ID of a real GA4 property is the only change needed for live data to flow.</div>
+  </div>
+
+  <h2>Tracking snippet installed</h2>
+  <div class="card">
+<pre>&lt;script async src="https://www.googletagmanager.com/gtag/js?id={{ prop.measurement_id }}"&gt;&lt;/script&gt;
+&lt;script&gt;
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '{{ prop.measurement_id }}', { 'user_id': '{{ prop.user_id }}' });
+&lt;/script&gt;</pre>
+  </div>
+
+  <h2>Send an event</h2>
+  <div class="card">
+    <div class="btns">
+      {% for name in events %}
+        <form method="post" action="/fire/{{ name }}">
+          <button type="submit">{{ name }} <span class="c">[{{ counts[name] }}]</span></button>
+        </form>
+      {% endfor %}
+      <form method="post" action="/reset"><button class="reset" type="submit">clear log</button></form>
+    </div>
+  </div>
+
+  <h2>Events collected with their parameters</h2>
+  <div class="card">
+    {% if log %}
+      <table>
+        <tr><th>Time</th><th>Event</th><th>Parameters sent</th></tr>
+        {% for e in log %}
+          <tr>
+            <td>{{ e.time }}</td>
+            <td class="ev">{{ e.name }}</td>
+            <td class="pm">{% for k, v in e.params.items() %}{{ k }}: {{ v }}{% if not loop.last %} &middot; {% endif %}{% endfor %}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <div class="empty">No event fired yet. Use the buttons above.</div>
+    {% endif %}
+  </div>
+
+  <h2>Analytics parameters determined for this store</h2>
+  <div class="card">
+    <table>
+      <tr><th>Parameter</th><th>What it tells us</th><th>GA4 report</th></tr>
+      {% for name, meaning, report in parameters %}
+        <tr><td class="ev">{{ name }}</td><td class="desc">{{ meaning }}</td><td class="desc">{{ report }}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Kalash Digital - Pay invoice</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding-bottom: 40px; font-family: "Tahoma", "Segoe UI", sans-serif; background: #eef1ee; color: #2b332c; }
+  .top { background: #fff; border-bottom: 3px solid #60bb46; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; }
+  .top .brand { font-size: 20px; font-weight: bold; letter-spacing: -.3px; }
+  .top .brand span { color: #60bb46; }
+  .top .me { font-size: 12px; color: #6b756c; text-align: right; line-height: 1.7; }
+  .top .me b { color: #2b332c; font-size: 13px; }
+  main { max-width: 860px; margin: 26px auto 0; padding: 0 22px; }
+  h1 { font-size: 20px; margin: 0 0 4px; }
+  .lead { color: #6b756c; font-size: 13px; margin: 0 0 24px; }
+  .split { display: flex; gap: 18px; flex-wrap: wrap; align-items: flex-start; }
+  .panel { flex: 1 1 330px; background: #fff; border: 1px solid #dbe1db; border-radius: 6px; padding: 20px 22px; }
+  .panel h2 { margin: 0 0 4px; font-size: 15px; }
+  .panel .inv { font-size: 12px; color: #6b756c; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td, th { padding: 8px 0; text-align: left; border-bottom: 1px solid #eef1ee; }
+  th { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #8b948c; font-weight: normal; }
+  td.r, th.r { text-align: right; }
+  tr.pay td { border: 0; padding-top: 14px; font-size: 19px; font-weight: bold; color: #2e7d32; }
+  form { margin-top: 18px; }
+  .esewa {
+    width: 100%; border: 0; background: #60bb46; color: #fff; padding: 13px;
+    font-family: inherit; font-size: 15px; font-weight: bold; border-radius: 5px; cursor: pointer;
+  }
+  .esewa:hover { background: #52a53b; }
+  .kv { font-size: 13px; }
+  .kv div { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px dotted #dbe1db; }
+  .kv div span:last-child { font-family: "Consolas", monospace; }
+  .warn { margin-top: 16px; background: #fff8e1; border-left: 4px solid #e6b100; padding: 10px 13px; font-size: 12px; color: #6d5600; line-height: 1.6; }
+  h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: #6b756c; margin: 30px 0 10px; }
+  .log { background: #fff; border: 1px solid #dbe1db; border-radius: 6px; padding: 6px 20px 14px; }
+  .ok { color: #2e7d32; font-weight: bold; }
+  .no { color: #b3261e; font-weight: bold; }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand">Kalash <span>Digital</span></div>
+  <div class="me"><b>{{ customer.name }}</b><br>Customer {{ customer.roll }} &middot; {{ customer.email }}</div>
+</div>
+
+<main>
+  <h1>Lab 5 &mdash; payment gateway integration</h1>
+  <p class="lead">The invoice amount is handed to eSewa running in sandbox (test) mode, and the gateway replies with a transaction reference and a status.</p>
+
+  <div class="split">
+    <div class="panel">
+      <h2>Invoice</h2>
+      <div class="inv">{{ order.number }} &middot; billed to {{ customer.name }}</div>
+      <table>
+        <tr><th>Description</th><th class="r">Qty</th><th class="r">Amount</th></tr>
+        {% for line in order.lines %}
+          <tr><td>{{ line.name }}</td><td class="r">{{ line.qty }}</td><td class="r">{{ line.qty * line.price }}</td></tr>
+        {% endfor %}
+        <tr class="pay"><td colspan="2">Payable</td><td class="r">NPR {{ total }}</td></tr>
+      </table>
+      <form method="post" action="/gateway">
+        <input type="hidden" name="amount" value="{{ total }}">
+        <input type="hidden" name="product_code" value="{{ sandbox.product_code }}">
+        <button class="esewa" type="submit">Pay NPR {{ total }} with eSewa</button>
+      </form>
+    </div>
+
+    <div class="panel">
+      <h2>Sandbox configuration</h2>
+      <div class="inv">Values sent to the gateway with the payment request</div>
+      <div class="kv">
+        <div><span>Environment</span><span>TEST</span></div>
+        <div><span>Product code</span><span>{{ sandbox.product_code }}</span></div>
+        <div><span>Test eSewa ID</span><span>{{ sandbox.esewa_id }}</span></div>
+        <div><span>Test password</span><span>{{ sandbox.password }}</span></div>
+        <div><span>Test token</span><span>{{ sandbox.token }}</span></div>
+        <div><span>Return URL</span><span>{{ sandbox.success_url }}</span></div>
+      </div>
+      <div class="warn">Sandbox only. No live merchant key is used, and no real money is transferred at any point of this flow.</div>
+    </div>
+  </div>
+
+  {% if payments %}
+    <h3>Payment log</h3>
+    <div class="log">
+      <table>
+        <tr><th>Reference</th><th>Invoice</th><th class="r">Amount</th><th>Status</th><th>Time</th></tr>
+        {% for p in payments %}
+          <tr>
+            <td>{{ p.reference }}</td><td>{{ p.order }}</td><td class="r">{{ p.amount }}</td>
+            <td class="{{ 'ok' if p.status == 'COMPLETE' else 'no' }}">{{ p.status }}</td>
+            <td>{{ p.time }}</td>
+          </tr>
+        {% endfor %}
+      </table>
+    </div>
+  {% endif %}
+</main>
+</body>
+</html>

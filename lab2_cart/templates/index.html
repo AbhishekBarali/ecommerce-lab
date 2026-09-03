@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hariyo Bazaar - Cart</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding-bottom: 40px;
+    font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+    background: #f2f6f1; color: #23302a;
+  }
+  .bar { background: #1f7a3d; color: #fff; padding: 16px 40px; display: flex; justify-content: space-between; align-items: center; }
+  .bar .logo { font-size: 24px; font-weight: bold; letter-spacing: -.5px; }
+  .bar .logo small { display: block; font-size: 12px; font-weight: normal; opacity: .85; letter-spacing: 1px; }
+  .bar .acct { font-size: 13px; text-align: right; line-height: 1.6; }
+  .bar .acct strong { font-size: 15px; }
+  .wrap { max-width: 1040px; margin: 26px auto 0; padding: 0 20px; display: flex; gap: 22px; align-items: flex-start; }
+  .left { flex: 1 1 auto; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: #6a7a70; font-size: 14px; margin: 0 0 20px; }
+  .note { background: #e2f5e6; border: 1px solid #b7e0c1; color: #16693a; padding: 10px 14px; border-radius: 30px; font-size: 14px; margin-bottom: 18px; }
+  .shelf { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: #86988c; margin: 22px 0 10px; }
+  .rack { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .card { background: #fff; border-radius: 14px; padding: 16px; box-shadow: 0 2px 6px rgba(31,122,61,.08); }
+  .card .nm { font-weight: bold; font-size: 16px; }
+  .card .un { color: #86988c; font-size: 13px; margin: 2px 0 10px; }
+  .card .pr { font-size: 19px; color: #1f7a3d; font-weight: bold; margin-bottom: 12px; }
+  button { font-family: inherit; cursor: pointer; border: 0; }
+  .buy { background: #1f7a3d; color: #fff; border-radius: 30px; padding: 8px 18px; font-size: 14px; width: 100%; }
+  .buy:hover { background: #196331; }
+  aside { flex: 0 0 300px; background: #fff; border-radius: 14px; padding: 20px; box-shadow: 0 2px 8px rgba(31,122,61,.1); position: sticky; top: 20px; }
+  aside h2 { margin: 0 0 3px; font-size: 18px; }
+  aside .count { color: #86988c; font-size: 13px; margin-bottom: 16px; }
+  .line { border-top: 1px solid #eaf0ea; padding: 11px 0; }
+  .line .top { display: flex; justify-content: space-between; font-size: 15px; }
+  .line .top b { font-weight: bold; }
+  .line .meta { color: #86988c; font-size: 12px; margin: 2px 0 7px; }
+  .qty { display: flex; align-items: center; gap: 8px; }
+  .qty form { display: inline; }
+  .step { width: 26px; height: 26px; border-radius: 50%; background: #eaf3ec; color: #1f7a3d; font-size: 15px; line-height: 1; }
+  .qty .n { font-size: 14px; min-width: 46px; }
+  .rm { background: none; color: #b4443b; font-size: 12px; text-decoration: underline; padding: 0; margin-left: auto; }
+  .sum { border-top: 2px solid #1f7a3d; margin-top: 14px; padding-top: 12px; display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; }
+  .none { color: #86988c; font-size: 14px; padding: 14px 0; }
+</style>
+</head>
+<body>
+<div class="bar">
+  <div class="logo">Hariyo Bazaar<small>ONLINE GROCERY</small></div>
+  <div class="acct">
+    <strong>{{ shopper.name }}</strong><br>
+    Customer ID {{ shopper.roll }} &middot; {{ shopper.city }}
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="left">
+    <h1>Lab 2 &mdash; Product list and add to cart</h1>
+    <p class="sub">Pick anything from the shelves; the cart on the right keeps the quantity and the total.</p>
+    {% if note %}<div class="note">{{ note }}</div>{% endif %}
+
+    {% for shelf in shelves %}
+      <div class="shelf">{{ shelf }}</div>
+      <div class="rack">
+        {% for p in products if p.shelf == shelf %}
+          <div class="card">
+            <div class="nm">{{ p.name }}</div>
+            <div class="un">{{ p.unit }}</div>
+            <div class="pr">NPR {{ p.price }}</div>
+            <form method="post" action="/add/{{ p.id }}"><button class="buy" type="submit">Add to cart</button></form>
+          </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <aside>
+    <h2>Your cart</h2>
+    <div class="count">{{ items }} item(s) for {{ shopper.name.split(' ')[0] }}</div>
+    {% if cart %}
+      {% for line in cart %}
+        <div class="line">
+          <div class="top"><span>{{ line.name }}</span><b>NPR {{ line.price * line.qty }}</b></div>
+          <div class="meta">{{ line.unit }} &middot; NPR {{ line.price }} each</div>
+          <div class="qty">
+            <form method="post" action="/less/{{ line.id }}"><button class="step" type="submit">&minus;</button></form>
+            <span class="n">Qty {{ line.qty }}</span>
+            <form method="post" action="/add/{{ line.id }}"><button class="step" type="submit">+</button></form>
+            <form method="post" action="/drop/{{ line.id }}"><button class="rm" type="submit">Remove</button></form>
+          </div>
+        </div>
+      {% endfor %}
+      <div class="sum"><span>Total</span><span>NPR {{ total }}</span></div>
+    {% else %}
+      <div class="none">The cart is empty. Add a product from the shelves.</div>
+    {% endif %}
+  </aside>
+</div>
+</body>
+</html>

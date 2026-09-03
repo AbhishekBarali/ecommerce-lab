@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>WishBox - Saved items</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding-bottom: 46px;
+    font-family: "Verdana", "Geneva", sans-serif;
+    background: #fdf4f1; color: #40292e;
+  }
+  .hero { background: #a83250; color: #fff2ee; padding: 26px 40px 30px; border-radius: 0 0 40px 40px; }
+  .hero h1 { margin: 0; font-size: 25px; letter-spacing: -.3px; }
+  .hero p { margin: 6px 0 0; font-size: 13px; opacity: .9; }
+  .hero .owner { margin-top: 16px; display: inline-block; background: rgba(255,255,255,.16); padding: 7px 16px; border-radius: 30px; font-size: 13px; }
+  main { max-width: 950px; margin: -14px auto 0; padding: 0 22px; }
+  .note { background: #fff; border: 2px solid #f0c9d2; color: #a83250; border-radius: 14px; padding: 11px 16px; font-size: 13px; margin: 26px 0 6px; }
+  h2 { font-size: 15px; letter-spacing: 1px; text-transform: uppercase; color: #a83250; margin: 30px 0 14px; }
+  .rows { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .prod { background: #fff; border-radius: 18px; padding: 18px; border: 1px solid #f6dfe3; }
+  .prod .brand { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: #b98d97; }
+  .prod .name { font-size: 16px; font-weight: bold; margin: 5px 0 9px; line-height: 1.35; }
+  .prod .price { font-size: 17px; color: #a83250; margin-bottom: 13px; }
+  button { font-family: inherit; cursor: pointer; border: 0; }
+  .save { background: #a83250; color: #fff; border-radius: 30px; padding: 9px 18px; font-size: 12px; width: 100%; letter-spacing: .5px; }
+  .save.on { background: #fdeef1; color: #a83250; border: 1px dashed #d98da0; }
+  .saved-box { background: #fff; border-radius: 20px; padding: 8px 22px 18px; border: 1px solid #f6dfe3; }
+  .srow { display: flex; align-items: center; gap: 16px; padding: 16px 0; border-bottom: 1px dashed #f0d7dd; }
+  .srow:last-child { border-bottom: 0; }
+  .srow .mark { width: 38px; height: 38px; border-radius: 50%; background: #fdeef1; color: #a83250; font-size: 15px; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+  .srow .info { flex: 1 1 auto; }
+  .srow .info .t { font-size: 15px; font-weight: bold; }
+  .srow .info .m { font-size: 12px; color: #ac8b93; margin-top: 3px; }
+  .srow .amt { font-size: 15px; color: #a83250; min-width: 110px; text-align: right; }
+  .srow .acts { display: flex; gap: 8px; }
+  .move { background: #40292e; color: #fff; border-radius: 30px; padding: 8px 15px; font-size: 12px; }
+  .drop { background: #fdeef1; color: #a83250; border-radius: 30px; padding: 8px 15px; font-size: 12px; }
+  .tally { display: flex; justify-content: space-between; margin-top: 16px; padding-top: 14px; border-top: 2px solid #a83250; font-size: 15px; font-weight: bold; color: #a83250; }
+  .none { color: #b98d97; font-size: 13px; padding: 18px 0; }
+  .cart-strip { margin-top: 22px; background: #fff; border-radius: 16px; border: 1px solid #f6dfe3; padding: 14px 20px; font-size: 13px; color: #7b5b62; }
+  .cart-strip b { color: #40292e; }
+</style>
+</head>
+<body>
+<div class="hero">
+  <h1>WishBox</h1>
+  <p>Lab 4 &mdash; product list with an add-to-wish-list feature</p>
+  <div class="owner">Wish list of {{ owner.name }} &nbsp;&middot;&nbsp; Roll No. {{ owner.roll }} &nbsp;&middot;&nbsp; Section A</div>
+</div>
+
+<main>
+  {% if note %}<div class="note">{{ note }}</div>{% endif %}
+
+  <h2>Products</h2>
+  <div class="rows">
+    {% for p in products %}
+      <div class="prod">
+        <div class="brand">{{ p.brand }}</div>
+        <div class="name">{{ p.name }}</div>
+        <div class="price">NPR {{ p.price }}</div>
+        <form method="post" action="/save/{{ p.id }}">
+          <button class="save {% if p.id in saved %}on{% endif %}" type="submit">
+            {% if p.id in saved %}Already on wish list{% else %}Save to wish list{% endif %}
+          </button>
+        </form>
+      </div>
+    {% endfor %}
+  </div>
+
+  <h2>Wish list of {{ owner.name }} &mdash; {{ wishlist|length }} saved</h2>
+  <div class="saved-box">
+    {% if wishlist %}
+      {% for w in wishlist %}
+        <div class="srow">
+          <div class="mark">{{ loop.index }}</div>
+          <div class="info">
+            <div class="t">{{ w.name }}</div>
+            <div class="m">{{ w.brand }} &middot; saved {{ w.saved_at }}</div>
+          </div>
+          <div class="amt">NPR {{ w.price }}</div>
+          <div class="acts">
+            <form method="post" action="/move/{{ w.id }}"><button class="move" type="submit">Move to cart</button></form>
+            <form method="post" action="/forget/{{ w.id }}"><button class="drop" type="submit">Remove</button></form>
+          </div>
+        </div>
+      {% endfor %}
+      <div class="tally"><span>Value held in the wish list</span><span>NPR {{ value }}</span></div>
+    {% else %}
+      <p class="none">Nothing saved yet. Use "Save to wish list" on any product above.</p>
+    {% endif %}
+  </div>
+
+  <div class="cart-strip">
+    Moved into the cart so far:
+    {% if cart %}<b>{{ cart|map(attribute='name')|join(', ') }}</b>{% else %}<b>nothing yet</b>{% endif %}
+  </div>
+</main>
+</body>
+</html>

@@ -1,10 +1,11 @@
 """Capture the screenshots used in the lab report.
 
-Starts the Flask app on a local port, drives it with Playwright, and writes
-PNG files into the screenshots/ folder.
+Each lab is a separate Flask app, so each one is started on its own port,
+driven with Playwright, and screenshotted.
 
     .venv/bin/python tools/capture_screenshots.py
 """
+import importlib.util
 import os
 import sys
 import threading
@@ -12,85 +13,113 @@ import time
 
 from playwright.sync_api import sync_playwright
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from app import app  # noqa: E402
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+OUT = os.path.join(ROOT, "screenshots")
 
-PORT = 5055
-BASE = f"http://127.0.0.1:{PORT}"
-OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "screenshots")
+LABS = [
+    ("lab1_categories", 5101),
+    ("lab2_cart", 5102),
+    ("lab3_checkout", 5103),
+    ("lab4_wishlist", 5104),
+    ("lab5_payment", 5105),
+    ("lab6_analytics", 5106),
+]
 
 
-def serve():
-    app.run(port=PORT, use_reloader=False)
+def load_app(folder):
+    """Import the app.py of one lab folder under a unique module name."""
+    path = os.path.join(ROOT, folder, "app.py")
+    spec = importlib.util.spec_from_file_location(f"{folder}_app", path)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+    return module.app
+
+
+def serve_all():
+    for folder, port in LABS:
+        app = load_app(folder)
+        threading.Thread(target=app.run,
+                         kwargs={"port": port, "use_reloader": False},
+                         daemon=True).start()
+    time.sleep(3)
 
 
 def shot(page, name, full=True):
-    path = os.path.join(OUT, name)
-    page.screenshot(path=path, full_page=full)
+    """Screenshot trimmed to the real content height, so a short page does not
+    leave a band of empty space in the report."""
+    height = page.evaluate(
+        "Math.ceil(Math.min(document.documentElement.scrollHeight,"
+        " document.body.getBoundingClientRect().bottom + 12))")
+    if not full:
+        height = min(height, 880)
+    page.screenshot(path=os.path.join(OUT, name), full_page=True,
+                    clip={"x": 0, "y": 0, "width": 1280, "height": height})
     print("saved", name)
 
 
 def main():
     os.makedirs(OUT, exist_ok=True)
-    threading.Thread(target=serve, daemon=True).start()
-    time.sleep(2)
+    serve_all()
+    base = "http://127.0.0.1:"
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        page = browser.new_page(viewport={"width": 1280, "height": 900})
+        page = browser.new_page(viewport={"width": 1280, "height": 880})
 
-        # Home
-        page.goto(BASE)
-        shot(page, "01-home.png")
-
-        # Lab 1 - create a category and add an item to it
-        page.goto(f"{BASE}/lab1")
+        # Lab 1 - create a category, then add an item into it
+        page.goto(base + "5101")
+        shot(page, "lab1-a-start.png")
         page.fill("input[name=category]", "Stationery")
-        page.click("form[action='/lab1/add-category'] button")
+        page.click("form[action='/category'] button")
         page.fill("input[name=name]", "A4 Notebook")
-        page.fill("input[name=price]", "220")
         page.select_option("select[name=category]", "Stationery")
-        page.click("form[action='/lab1/add-item'] button")
-        shot(page, "02-lab1-categories.png")
+        page.click("form[action='/item'] button")
+        shot(page, "lab1-b-added.png")
 
-        # Lab 2 - add products to the cart
-        page.goto(f"{BASE}/lab2")
-        shot(page, "03-lab2-products.png")
-        page.click("form[action='/lab2/add/1'] button")
-        page.click("form[action='/lab2/add/5'] button")
-        page.click("form[action='/lab2/add/5'] button")
-        shot(page, "04-lab2-cart.png")
+        # Lab 2 - add products, raise a quantity
+        page.goto(base + "5102")
+        shot(page, "lab2-a-products.png")
+        page.click("form[action='/add/1'] button")
+        page.click("form[action='/add/3'] button")
+        page.click("form[action='/add/3'] button")
+        page.click("form[action='/add/5'] button")
+        shot(page, "lab2-b-cart.png")
 
-        # Lab 3 - checkout
-        page.goto(f"{BASE}/lab3")
-        page.click("form[action='/lab3/add/6'] button")
-        shot(page, "05-lab3-checkout.png")
-        page.click("form[action='/lab3/checkout'] button")
-        shot(page, "06-lab3-order.png")
+        # Lab 3 - fill the cart, then check out
+        page.goto(base + "5103")
+        page.click("form[action='/add/1'] button")
+        page.click("form[action='/add/4'] button")
+        page.click("form[action='/add/4'] button")
+        shot(page, "lab3-a-cart.png")
+        page.click("form[action='/checkout'] button")
+        shot(page, "lab3-b-order.png")
 
-        # Lab 4 - wish list
-        page.goto(f"{BASE}/lab4")
-        page.click("form[action='/lab4/add/3'] button")
-        page.click("form[action='/lab4/add/7'] button")
-        shot(page, "07-lab4-wishlist.png")
+        # Lab 4 - save to the wish list, then move one item to the cart
+        page.goto(base + "5104")
+        shot(page, "lab4-a-products.png")
+        page.click("form[action='/save/1'] button")
+        page.click("form[action='/save/4'] button")
+        page.click("form[action='/save/6'] button")
+        shot(page, "lab4-b-wishlist.png")
+        page.click("form[action='/move/4'] button")
+        shot(page, "lab4-c-moved.png")
 
-        # Lab 5 - payment gateway in sandbox mode
-        page.goto(f"{BASE}/lab2")
-        page.click("form[action='/lab2/add/3'] button")
-        page.goto(f"{BASE}/lab5")
-        shot(page, "08-lab5-payment.png")
-        page.click("form[action='/lab5/gateway'] button")
-        shot(page, "09-lab5-gateway.png", full=False)
-        page.click("form[action='/lab5/verify'] button")
-        shot(page, "10-lab5-result.png")
+        # Lab 5 - invoice, sandbox gateway, result
+        page.goto(base + "5105")
+        shot(page, "lab5-a-invoice.png")
+        page.click("form[action='/gateway'] button")
+        shot(page, "lab5-b-gateway.png", full=False)
+        page.click("form[action='/gateway/verify'] button")
+        shot(page, "lab5-c-result.png")
 
-        # Lab 6 - analytics
-        page.goto(f"{BASE}/lab6")
-        shot(page, "11-lab6-setup.png")
-        for event in ["page_view", "view_item", "add_to_cart", "begin_checkout", "purchase"]:
-            page.click(f"form[action='/lab6/track/{event}'] button")
-        page.locator("h2:has-text('Events collected')").scroll_into_view_if_needed()
-        shot(page, "12-lab6-events.png")
+        # Lab 6 - fire the events and read the parameters
+        page.goto(base + "5106")
+        shot(page, "lab6-a-setup.png")
+        for event in ["page_view", "view_item", "add_to_cart",
+                      "add_to_wishlist", "begin_checkout", "purchase"]:
+            page.click(f"form[action='/fire/{event}'] button")
+        shot(page, "lab6-b-events.png")
 
         browser.close()
 
