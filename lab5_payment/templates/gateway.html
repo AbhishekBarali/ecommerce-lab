@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>eSewa - Test payment</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Tahoma", "Segoe UI", sans-serif; background: #f4f6f4; color: #2b332c; }
+  .gwtop { background: #60bb46; color: #fff; padding: 14px 0; text-align: center; }
+  .gwtop .logo { font-size: 22px; font-weight: bold; letter-spacing: 1px; }
+  .gwtop .env { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; opacity: .9; margin-top: 2px; }
+  .sheet { max-width: 430px; margin: 30px auto; background: #fff; border: 1px solid #dbe1db; border-radius: 8px; overflow: hidden; }
+  .amt { padding: 20px 24px; border-bottom: 1px solid #eef1ee; background: #fbfdfa; }
+  .amt .lbl { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #8b948c; }
+  .amt .val { font-size: 30px; font-weight: bold; color: #2e7d32; margin-top: 4px; }
+  .amt .to { font-size: 12px; color: #6b756c; margin-top: 8px; line-height: 1.7; }
+  .body { padding: 20px 24px 24px; }
+  label { display: block; font-size: 12px; color: #6b756c; margin-bottom: 5px; }
+  input { width: 100%; padding: 10px 12px; margin-bottom: 15px; border: 1px solid #cfd6cf; border-radius: 4px; font-family: inherit; font-size: 14px; }
+  .go { width: 100%; border: 0; background: #60bb46; color: #fff; padding: 12px; font-family: inherit; font-size: 15px; font-weight: bold; border-radius: 4px; cursor: pointer; }
+  .go:hover { background: #52a53b; }
+  .hint { margin-top: 16px; font-size: 11px; color: #8b948c; line-height: 1.7; border-top: 1px dotted #dbe1db; padding-top: 12px; }
+  .foot { text-align: center; font-size: 11px; color: #9aa39b; padding-bottom: 30px; }
+</style>
+</head>
+<body>
+<div class="gwtop">
+  <div class="logo">eSewa</div>
+  <div class="env">test payment gateway</div>
+</div>
+
+<div class="sheet">
+  <div class="amt">
+    <div class="lbl">Amount to pay</div>
+    <div class="val">NPR {{ amount }}</div>
+    <div class="to">
+      Merchant product code {{ product_code }}<br>
+      Invoice {{ order_number }} &middot; payer {{ customer.name }} ({{ customer.roll }})
+    </div>
+  </div>
+  <div class="body">
+    <form method="post" action="/gateway/verify">
+      <input type="hidden" name="amount" value="{{ amount }}">
+      <label>eSewa ID</label>
+      <input name="esewa_id" value="{{ sandbox.esewa_id }}" required>
+      <label>Password</label>
+      <input name="password" type="password" value="{{ sandbox.password }}" required>
+      <label>Token (OTP)</label>
+      <input name="token" value="{{ sandbox.token }}" required>
+      <button class="go" type="submit">Confirm payment</button>
+    </form>
+    <div class="hint">
+      Test credentials are pre-filled from eSewa's published sandbox account.
+      Changing any of them makes the gateway return a FAILED status, which is
+      how the failure path is demonstrated.
+    </div>
+  </div>
+</div>
+
+<div class="foot">Sandbox environment &middot; no live transaction</div>
+</body>
+</html>

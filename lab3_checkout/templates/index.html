@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DeskWorks - Checkout</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding-bottom: 44px;
+    font-family: "Segoe UI", Helvetica, Arial, sans-serif;
+    background: #1b1e24; color: #e6e3dc;
+  }
+  header { padding: 20px 40px; border-bottom: 1px solid #2e333c; display: flex; justify-content: space-between; align-items: center; }
+  header h1 { margin: 0; font-size: 21px; letter-spacing: 4px; text-transform: uppercase; color: #f0a02a; }
+  header .id { font-size: 13px; color: #8e959f; text-align: right; line-height: 1.6; }
+  header .id b { color: #e6e3dc; }
+  main { max-width: 980px; margin: 0 auto; padding: 26px 22px 0; }
+  .lead { color: #9aa1ab; font-size: 14px; margin: 0 0 22px; }
+  .lead b { color: #e6e3dc; font-weight: 600; }
+  .note { border: 1px dashed #f0a02a; color: #f0a02a; padding: 10px 14px; font-size: 14px; margin-bottom: 22px; }
+  h2 { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #8e959f; margin: 26px 0 12px; font-weight: 600; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .item { background: #23272f; border: 1px solid #2e333c; padding: 14px 16px; }
+  .item .n { font-size: 15px; margin-bottom: 6px; }
+  .item .p { font-family: "Consolas", monospace; color: #f0a02a; font-size: 17px; margin-bottom: 12px; }
+  button { font-family: inherit; cursor: pointer; border: 0; }
+  .add { background: #f0a02a; color: #1b1e24; padding: 7px 16px; font-size: 13px; font-weight: 600; letter-spacing: .5px; }
+  .add:hover { background: #ffb444; }
+  .cols { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; margin-top: 8px; }
+  .box { flex: 1 1 320px; background: #23272f; border: 1px solid #2e333c; padding: 18px 20px; }
+  .box h3 { margin: 0 0 14px; font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: #8e959f; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  td, th { padding: 7px 0; text-align: left; border-bottom: 1px solid #2e333c; }
+  th { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #767d87; font-weight: 500; }
+  td.r, th.r { text-align: right; font-family: "Consolas", monospace; }
+  tr.sum td { border: 0; padding-top: 12px; font-size: 16px; color: #f0a02a; font-family: "Consolas", monospace; }
+  tr.sum td:first-child { font-family: inherit; letter-spacing: 1px; }
+  .rm { background: none; color: #b4726b; font-size: 12px; text-decoration: underline; padding: 0; }
+  label { display: block; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #767d87; margin: 0 0 5px; }
+  input { width: 100%; padding: 9px 11px; margin-bottom: 13px; background: #1b1e24; border: 1px solid #39404a; color: #e6e3dc; font-family: inherit; font-size: 14px; }
+  .place { background: #f0a02a; color: #1b1e24; width: 100%; padding: 11px; font-size: 15px; font-weight: 600; letter-spacing: 1px; }
+  .receipt { background: #fdfaf2; color: #2a2622; font-family: "Consolas", monospace; padding: 22px 26px; margin-bottom: 16px; box-shadow: 0 3px 0 #0f1116; }
+  .receipt .rh { display: flex; justify-content: space-between; border-bottom: 2px dashed #b8b0a2; padding-bottom: 10px; margin-bottom: 12px; }
+  .receipt .rh .no { font-size: 17px; font-weight: bold; letter-spacing: 1px; }
+  .receipt .rh .dt { font-size: 12px; color: #6d675e; text-align: right; }
+  .receipt .to { font-size: 13px; line-height: 1.7; margin-bottom: 14px; }
+  .receipt table { font-size: 13px; }
+  .receipt td, .receipt th { border-bottom: 1px dotted #cdc6b8; color: #2a2622; }
+  .receipt th { color: #6d675e; }
+  .receipt .grand { display: flex; justify-content: space-between; border-top: 2px dashed #b8b0a2; margin-top: 12px; padding-top: 10px; font-size: 17px; font-weight: bold; }
+  .none { color: #767d87; font-size: 14px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>DeskWorks</h1>
+  <div class="id">Signed in as <b>{{ buyer.name }}</b><br>Customer {{ buyer.roll }} &middot; Section A, Batch 2023</div>
+</header>
+
+<main>
+  <p class="lead"><b>Lab 3 &mdash; add to cart and checkout.</b> The cart becomes an order, the cart empties, and the ordered items print below as a receipt.</p>
+  {% if note %}<div class="note">{{ note }}</div>{% endif %}
+
+  <h2>Products</h2>
+  <div class="grid">
+    {% for p in products %}
+      <div class="item">
+        <div class="n">{{ p.name }}</div>
+        <div class="p">NPR {{ p.price }}</div>
+        <form method="post" action="/add/{{ p.id }}"><button class="add" type="submit">Add to cart</button></form>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="cols">
+    <div class="box">
+      <h3>Cart</h3>
+      {% if cart %}
+        <table>
+          <tr><th>Item</th><th class="r">Qty</th><th class="r">Amount</th><th></th></tr>
+          {% for line in cart %}
+            <tr>
+              <td>{{ line.name }}</td>
+              <td class="r">{{ line.qty }}</td>
+              <td class="r">{{ line.price * line.qty }}</td>
+              <td class="r"><form method="post" action="/drop/{{ line.id }}"><button class="rm" type="submit">remove</button></form></td>
+            </tr>
+          {% endfor %}
+          <tr><td colspan="2">Delivery</td><td class="r">{{ delivery }}</td><td></td></tr>
+          <tr class="sum"><td colspan="2">Payable</td><td class="r">{{ goods + delivery }}</td><td></td></tr>
+        </table>
+      {% else %}
+        <p class="none">Cart is empty.</p>
+      {% endif %}
+    </div>
+
+    <div class="box">
+      <h3>Checkout</h3>
+      <form method="post" action="/checkout">
+        <label>Customer name</label>
+        <input name="name" value="{{ buyer.name }}" required>
+        <label>Delivery address</label>
+        <input name="address" value="{{ buyer.address }}" required>
+        <label>Phone</label>
+        <input name="phone" value="{{ buyer.phone }}" required>
+        <button class="place" type="submit">Place order</button>
+      </form>
+    </div>
+  </div>
+
+  <h2>Ordered list of items</h2>
+  {% if orders %}
+    {% for o in orders %}
+      <div class="receipt">
+        <div class="rh">
+          <div class="no">{{ o.number }}</div>
+          <div class="dt">{{ o.placed }}<br>Customer {{ o.roll }}</div>
+        </div>
+        <div class="to">{{ o.buyer }}<br>{{ o.address }}<br>{{ o.phone }}</div>
+        <table>
+          <tr><th>Item</th><th class="r">Rate</th><th class="r">Qty</th><th class="r">Amount</th></tr>
+          {% for line in o.lines %}
+            <tr>
+              <td>{{ line.name }}</td>
+              <td class="r">{{ line.price }}</td>
+              <td class="r">{{ line.qty }}</td>
+              <td class="r">{{ line.price * line.qty }}</td>
+            </tr>
+          {% endfor %}
+          <tr><td colspan="3">Goods</td><td class="r">{{ o.goods }}</td></tr>
+          <tr><td colspan="3">Delivery</td><td class="r">{{ o.delivery }}</td></tr>
+        </table>
+        <div class="grand"><span>TOTAL PAID</span><span>NPR {{ o.total }}</span></div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="none">No order has been placed yet.</p>
+  {% endif %}
+</main>
+</body>
+</html>
