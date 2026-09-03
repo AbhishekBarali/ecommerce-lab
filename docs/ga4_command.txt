@@ -1,0 +1,5 @@
+cd lab6_analytics
+GA_MEASUREMENT_ID=G-ABCD123456 ../.venv/bin/python app.py
+
+# then open http://127.0.0.1:5006 and click the event buttons,
+# and watch them arrive in Google Analytics under Reports > Realtime

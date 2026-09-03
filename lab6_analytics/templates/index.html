@@ -4,6 +4,58 @@
 <meta charset="utf-8">
 <title>Barali Store - Analytics Console</title>
 
+<!-- Records every hit the browser sends to google-analytics.com, so the page can
+     show that the events really left the browser. Must run before gtag.js. -->
+<script>
+  window.gaHits = [];
+  try { window.gaHits = JSON.parse(sessionStorage.getItem("gaHits") || "[]"); } catch (e) {}
+  (function () {
+    // GA4 puts the first event in the query string and any batched events in the
+    // request body, so both are read to name every event that was sent.
+    const namesFrom = (url, body) => {
+      const q = new URLSearchParams(String(url).split("?")[1] || "");
+      const names = q.get("en") ? [q.get("en")] : [];
+      String(body || "").split("\n").forEach((line) => {
+        const en = new URLSearchParams(line).get("en");
+        if (en) names.push(en);
+      });
+      return names.length ? names : ["page_view"];
+    };
+    const note = (url, body, how) => {
+      if (!url || String(url).indexOf("google-analytics.com") === -1) return;
+      const q = new URLSearchParams(String(url).split("?")[1] || "");
+      namesFrom(url, body).forEach((event) => window.gaHits.push({
+        event: event,
+        tid: q.get("tid") || "",
+        how: how,
+        at: new Date().toLocaleTimeString(),
+      }));
+      try { sessionStorage.setItem("gaHits", JSON.stringify(window.gaHits)); } catch (e) {}
+      if (window.renderHits) window.renderHits();
+    };
+    if (navigator.sendBeacon) {
+      const beacon = navigator.sendBeacon.bind(navigator);
+      navigator.sendBeacon = function (url, data) {
+        note(url, typeof data === "string" ? data : "", "sendBeacon");
+        return beacon(url, data);
+      };
+    }
+    const fetchOrig = window.fetch;
+    window.fetch = function (input, init) {
+      note(typeof input === "string" ? input : (input && input.url),
+           init && typeof init.body === "string" ? init.body : "", "fetch");
+      return fetchOrig.apply(this, arguments);
+    };
+    const open = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function (method, url) { this.__gaUrl = url; return open.apply(this, arguments); };
+    const send = XMLHttpRequest.prototype.send;
+    XMLHttpRequest.prototype.send = function (body) {
+      note(this.__gaUrl, typeof body === "string" ? body : "", "xhr");
+      return send.apply(this, arguments);
+    };
+  })();
+</script>
+
 <!-- Lab 6: Google Analytics 4 tracking snippet (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id={{ prop.measurement_id }}"></script>
 <script>
@@ -11,6 +63,11 @@
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
   gtag('config', '{{ prop.measurement_id }}', { 'user_id': '{{ prop.user_id }}' });
+
+  {% if pending %}
+  // The event chosen on the previous click is handed to Google Analytics now.
+  gtag('event', '{{ pending.name }}', {{ pending_json|safe }});
+  {% endif %}
 </script>
 
 <style>
@@ -49,6 +106,10 @@
   .empty { color: #6f8279; font-size: 12px; padding: 10px 0; }
   .warn { margin-top: 14px; border-left: 3px solid #d4a72d; background: #1b1a12; color: #d4a72d; padding: 10px 13px; font-size: 12px; line-height: 1.7; }
   .desc { color: #8fa39a; }
+  .hitnote { color: #6f8279; font-size: 11px; line-height: 1.8; margin-top: 12px; border-top: 1px solid #1e2823; padding-top: 10px; }
+  .mono { color: #a8c4b6; }
+  td.how { color: #d4a72d; }
+  .livebox { margin-top: 14px; border-left: 3px solid #2dd4a7; background: #12211b; color: #2dd4a7; padding: 10px 13px; font-size: 12px; line-height: 1.7; }
 </style>
 </head>
 <body>
@@ -74,13 +135,18 @@
   <h2>Setup carried out</h2>
   <div class="card">
     <ol class="steps">
-      <li>Created a GA4 property named <code>{{ prop.property_name }}</code> for the account of {{ prop.account }}.</li>
-      <li>Added the web data stream <code>{{ prop.stream }}</code>, which issued the Measurement ID <code>{{ prop.measurement_id }}</code>.</li>
-      <li>Pasted the gtag.js snippet into the page head and passed <code>user_id: {{ prop.user_id }}</code> so activity is tied to this account.</li>
-      <li>Left enhanced measurement on, so views, scrolls and outbound clicks are collected without extra code.</li>
-      <li>Fired the e-commerce events below, checked them in Realtime, and marked <code>purchase</code> as a key event.</li>
+      <li>Create a GA4 property named <code>{{ prop.property_name }}</code> under the account of {{ prop.account }}.</li>
+      <li>Add the web data stream <code>{{ prop.stream }}</code>. Creating it issues the Measurement ID shown above.</li>
+      <li>Paste the gtag.js snippet into the page head and pass <code>user_id: {{ prop.user_id }}</code> in the config call, so activity is tied to this account.</li>
+      <li>Leave enhanced measurement on, so views, scrolls and outbound clicks are collected without extra code.</li>
+      <li>Fire the e-commerce events below, confirm them in Reports &gt; Realtime, and mark <code>purchase</code> as a key event.</li>
     </ol>
-    <div class="warn">The Measurement ID is a placeholder. Replacing it with the ID of a real GA4 property is the only change needed for live data to flow.</div>
+    {% if live %}
+      <div class="livebox">A live Measurement ID is configured, so the hits listed below belong to a real GA4 property and show up in Reports &gt; Realtime within a few seconds.</div>
+    {% else %}
+      <div class="warn"><span class="mono">{{ prop.measurement_id }}</span> is a placeholder, so no GA4 property is receiving this data yet.
+        Start the program as <span class="mono">GA_MEASUREMENT_ID=G-YOURID python app.py</span> and every event below reaches that property. Nothing else changes.</div>
+    {% endif %}
   </div>
 
   <h2>Tracking snippet installed</h2>
@@ -104,6 +170,14 @@
       {% endfor %}
       <form method="post" action="/reset"><button class="reset" type="submit">clear log</button></form>
     </div>
+  </div>
+
+  <h2>Hits actually sent to Google Analytics</h2>
+  <div class="card">
+    <div id="hits" class="empty">Waiting for the browser to send a hit&hellip;</div>
+    <div class="hitnote">Captured in the browser as the request leaves the page, for the endpoint
+      <span class="mono">https://www.google-analytics.com/g/collect</span>. Each row is one hit that
+      gtag.js sent to the Measurement ID above.</div>
   </div>
 
   <h2>Events collected with their parameters</h2>
@@ -134,5 +208,27 @@
     </table>
   </div>
 </main>
+
+<script>
+  // Draws the captured hits into the panel above.
+  window.renderHits = function () {
+    const box = document.getElementById("hits");
+    if (!box) return;
+    if (!window.gaHits.length) return;
+    const rows = window.gaHits.map((h, i) => `<tr>
+        <td>${i + 1}</td>
+        <td class="ev">${h.event}</td>
+        <td>${h.tid}</td>
+        <td class="how">${h.how}</td>
+        <td>${h.at}</td>
+      </tr>`).join("");
+    box.className = "";
+    box.innerHTML = `<table>
+        <tr><th>#</th><th>Event sent</th><th>Measurement ID</th><th>Transport</th><th>Time</th></tr>
+        ${rows}
+      </table>`;
+  };
+  window.addEventListener("load", () => setTimeout(window.renderHits, 900));
+</script>
 </body>
 </html>
