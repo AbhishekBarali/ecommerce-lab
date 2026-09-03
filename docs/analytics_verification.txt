@@ -1,0 +1,38 @@
+Verification that the Lab 6 events reach Google Analytics
+Checked on 03 Sep 2026, 02:56 AM
+Measurement ID used: G-XXXXXXXXXX
+Endpoint: https://www.google-analytics.com/g/collect
+
+ #  EVENT SENT       MEASUREMENT ID  TRANSPORT
+ 1  page_view        G-XXXXXXXXXX    fetch
+ 2  page_view        G-XXXXXXXXXX    fetch
+ 3  page_view        G-XXXXXXXXXX    fetch
+ 4  user_engagement  G-XXXXXXXXXX    fetch
+ 5  page_view        G-XXXXXXXXXX    fetch
+ 6  view_item        G-XXXXXXXXXX    fetch
+ 7  user_engagement  G-XXXXXXXXXX    fetch
+ 8  page_view        G-XXXXXXXXXX    fetch
+ 9  add_to_cart      G-XXXXXXXXXX    fetch
+10  user_engagement  G-XXXXXXXXXX    fetch
+11  page_view        G-XXXXXXXXXX    fetch
+12  add_to_wishlist  G-XXXXXXXXXX    fetch
+13  user_engagement  G-XXXXXXXXXX    fetch
+14  page_view        G-XXXXXXXXXX    fetch
+15  begin_checkout   G-XXXXXXXXXX    fetch
+16  user_engagement  G-XXXXXXXXXX    fetch
+17  page_view        G-XXXXXXXXXX    fetch
+18  purchase         G-XXXXXXXXXX    fetch
+19  user_engagement  G-XXXXXXXXXX    fetch
+
+19 hit(s) left the browser for the collect endpoint.
+1 response(s) were observed in this run, 1 of them HTTP 204, which is how Google acknowledges a hit it has received.
+Hits sent while the page is navigating away are dispatched with keepalive,
+so their response is not always visible to the driving script; the request
+itself is recorded in the browser as it is sent.
+
+G-XXXXXXXXXX is a placeholder, so Google accepts the hits and drops
+them: no property owns that ID. The snippet, the endpoint, the event names
+and the parameters are all real. To point the same events at a live
+property, start the program with its ID and nothing else changes:
+
+    GA_MEASUREMENT_ID=G-ABCD123456 python app.py

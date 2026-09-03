@@ -65,7 +65,32 @@ node tools/build_report.js                      # writes the .docx
 - Lab 5 runs eSewa in test mode with its published sandbox credentials. No live
   merchant key is used and no real money moves. Changing any credential makes
   the gateway return `FAILED`, which demonstrates the failure path.
-- Lab 6 installs the GA4 `gtag.js` snippet with the placeholder Measurement ID
-  `G-XXXXXXXXXX` and passes `user_id: 023bscit003`. Swapping in a real
-  Measurement ID is the only change needed for live data. Events are also logged
-  locally so the collected parameters are visible on the page.
+- Lab 6 sends real events. The GA4 `gtag.js` snippet is installed in the page
+  head, each button hands its event to `gtag`, and the page lists every hit the
+  browser sends to `google-analytics.com/g/collect` so the integration is
+  visible without opening the GA dashboard.
+
+## Lab 6 with a live Google Analytics property
+
+The Measurement ID is read from an environment variable, so no code changes:
+
+```bash
+cd lab6_analytics
+GA_MEASUREMENT_ID=G-ABCD123456 ../.venv/bin/python app.py
+```
+
+Creating the GA4 property needs the account owner to sign in to Google — that is
+the one step nothing else can do for you. `docs/GA4-SETUP.md` has the
+click-by-click steps (about two minutes), and the events then show up under
+**Reports → Realtime**.
+
+To check delivery without the dashboard:
+
+```bash
+.venv/bin/python tools/verify_analytics.py
+```
+
+It drives the page, clicks every event, and writes `docs/analytics_verification.txt`
+listing each hit that left the browser. The last run captured 19 hits covering
+`page_view`, `view_item`, `add_to_cart`, `add_to_wishlist`, `begin_checkout` and
+`purchase`.

@@ -388,21 +388,40 @@ children.push(...lab({
   logic: [
     "A GA4 property with a web data stream issues a Measurement ID of the form G-XXXXXXXXXX.",
     "The gtag.js snippet is pasted into the head of the page, and the config call also passes user_id 023bscit003, so activity is tied to this account.",
+    "The Measurement ID is read from the GA_MEASUREMENT_ID environment variable, so a real property can be used without editing the code.",
     "Enhanced measurement is left on, so page views, scrolls and outbound clicks are collected without any extra code.",
-    "The store fires the standard e-commerce events page_view, view_item, add_to_cart, add_to_wishlist, begin_checkout and purchase, each with its own parameters.",
-    "Every fired event is also stored locally with its parameters and time, so the data being collected can be read on the page instead of only in the Google Analytics dashboard.",
-    "The report parameters chosen for this store, and the GA4 report each one is read from, are listed in a table on the page.",
+    "Clicking an event button hands that event to gtag on the next page load, so page_view, view_item, add_to_cart, add_to_wishlist, begin_checkout and purchase are really sent to Google Analytics with their parameters.",
+    "The page also records every request the browser makes to google-analytics.com and lists them, so the integration can be checked without opening the Google Analytics dashboard.",
+    "Every fired event is stored locally with its parameters and time as well, and the report parameters chosen for this store are listed in a table on the page.",
   ],
   codeFile: "lab6_analytics/app.py",
   codeCaption: "lab6_analytics/app.py",
   outcome: "All six events were fired and each one was captured with the parameters sent, for "
-    + "example purchase with transaction_id ORD-023BSCIT003-01 and a value of 6800. The ten "
-    + "parameters chosen for the store are listed below.",
+    + "example purchase with transaction_id ORD-023BSCIT003-01 and a value of 6800. The hit "
+    + "panel shows the same events leaving the browser for the Google Analytics collect "
+    + "endpoint. The ten parameters chosen for the store are listed after the figures.",
   figures: [
-    ["lab6-a-setup.png", "Lab 6. The setup carried out and the tracking snippet installed in the page head."],
+    ["lab6-a-setup.png", "Lab 6. The setup steps and the tracking snippet installed in the page head."],
     ["lab6-b-events.png", "Lab 6 output. Six events collected with their parameters, followed by the analytics parameters determined for the store."],
+    ["lab6-c-hits.png", "Lab 6 verification. The panel lists each hit the browser sent to google-analytics.com, naming the event and the Measurement ID it was sent to."],
   ],
 }));
+
+children.push(
+  heading("Verification that the events reach Google Analytics", HeadingLevel.HEADING_2),
+  para("The events are not only logged inside the program; they are handed to gtag, which "
+    + "sends them to Google. A script drives the page in a browser, clicks every event button "
+    + "and records each request made to the Google Analytics collect endpoint. Its output is "
+    + "below."),
+  ...code("docs/analytics_verification.txt", "Output of tools/verify_analytics.py"),
+  para("The Measurement ID in the code is a placeholder, so Google accepts these hits and "
+    + "drops them: no property owns that ID. Creating a GA4 property needs the account owner "
+    + "to sign in to Google, which is the one step that cannot be automated. Once the property "
+    + "exists, running the program with its ID sends the same events to it, and they appear in "
+    + "Reports > Realtime. No code changes:"),
+  ...code("docs/ga4_command.txt", "Running Lab 6 against a real GA4 property"),
+  para("The full click-by-click setup is written up in docs/GA4-SETUP.md in the repository."),
+);
 
 children.push(
   heading("Analytics parameters determined", HeadingLevel.HEADING_2),
