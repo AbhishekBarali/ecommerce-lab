@@ -40,13 +40,11 @@ const para = (t, o = {}) => new Paragraph({
   children: t === "" ? [] : [text(t, o)],
 });
 
-const heading = (t, level) => new Paragraph({
+const heading = (t, level, opts) => new Paragraph({
   heading: level,
   spacing: { before: level === HeadingLevel.HEADING_1 ? 360 : 260, after: 140 },
   keepNext: true,
-  border: level === HeadingLevel.HEADING_1
-    ? { bottom: { style: BorderStyle.SINGLE, size: 6, color: BLACK, space: 2 } }
-    : undefined,
+  pageBreakBefore: !!(opts && opts.pageBefore),
   children: [text(t, { bold: true, size: level === HeadingLevel.HEADING_1 ? 32 : 26 })],
 });
 
@@ -114,24 +112,13 @@ function code(file, caption) {
   const lines = [];
   src.split("\n").forEach((l) => wrap(l.replace(/\t/g, "    ")).forEach((p) => lines.push(p)));
 
-  const inner = lines.map((l, i) => new Paragraph({
-    spacing: { after: 0, line: 216, before: i === 0 ? 40 : 0 },
+  // Plain monospace lines, no shaded box and no border around the code.
+  const out = lines.map((l, i) => new Paragraph({
+    spacing: { after: 0, line: 216, before: i === 0 ? 60 : 0 },
     children: [text(l === "" ? " " : l, { font: MONO, size: 17 })],
   }));
-
-  const box = new Table({
-    columnWidths: [CONTENT_DXA],
-    width: { size: CONTENT_DXA, type: WidthType.DXA },
-    rows: [new TableRow({
-      children: [new TableCell({
-        width: { size: CONTENT_DXA, type: WidthType.DXA },
-        shading: { type: ShadingType.CLEAR, fill: "F6F6F4", color: "auto" },
-        margins: { top: 90, bottom: 90, left: 150, right: 120 },
-        children: inner,
-      })],
-    })],
-  });
-  return [box, para(caption, { italics: true, size: 21, align: AlignmentType.CENTER, after: 240 })];
+  out.push(para(caption, { italics: true, size: 21, align: AlignmentType.CENTER, after: 240, before: 80 }));
+  return out;
 }
 
 /* ---------------------------------------------------------------- screenshots */
@@ -165,7 +152,7 @@ function figure(name, caption) {
 /* ---------------------------------------------------------------- lab section */
 function lab({ number, title, app, port, objective, logic, codeFile, codeCaption, figures, outcome }) {
   return [
-    heading(`Lab ${number}: ${title}`, HeadingLevel.HEADING_1),
+    heading(`Lab ${number}: ${title}`, HeadingLevel.HEADING_1, { pageBefore: true }),
     para(`Program folder: ${app}   |   run with "python app.py" and open http://127.0.0.1:${port}`,
       { size: 22, italics: true, after: 200 }),
 
@@ -386,7 +373,7 @@ const bulletList = (items) => items.map((t) => new Paragraph({
 }));
 
 children.push(
-  heading("Lab 6: Google Analytics Setup and Analytics Parameters", HeadingLevel.HEADING_1),
+  heading("Lab 6: Google Analytics Setup and Analytics Parameters", HeadingLevel.HEADING_1, { pageBefore: true }),
   para("Studied on Google's official public GA4 demo, the Google Merchandise Store. "
     + "No website was built and no tracking code was written for this lab; the demo is a fully "
     + "working GA4 property that any Google user can add to their own Analytics, and it already "
